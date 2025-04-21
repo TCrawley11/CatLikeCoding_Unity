@@ -21,9 +21,26 @@ Shader "Custom/PointSurface"
 
         float _Smoothness;
 
-        void ConfigureSurface (Input input, inout SurfaceOutputStandard surface) {
+        float3 hsv2rgb(float3 c)
+        {
+            float4 K = float4(1.0, 2.0/3.0, 1.0/3.0, 3.0);
+            float3 p = abs(frac(c.xxx + K.xyz) * 6.0 - K.www);
+            return c.z * lerp(K.xxx, saturate(p - K.xxx), c.y);
+        }
+
+        void ConfigureSurface (Input input, inout SurfaceOutputStandard surface)
+        {
             surface.Smoothness = _Smoothness;
-            surface.Albedo.rg = saturate(input.worldPos.xy * 0.5 + 0.5);
+
+            // Use world position to create a hue value
+            float hue = frac(input.worldPos.x * 0.1); // adjust 0.1 to change how rainbowy it looks
+            float saturation = 1.0;
+            float value = 1.0;
+
+            float3 hsv = float3(hue, saturation, value);
+            float3 rgb = hsv2rgb(hsv);
+
+            surface.Albedo.rgb = rgb;
         }
 
         ENDCG
